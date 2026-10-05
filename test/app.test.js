@@ -1,6 +1,9 @@
+//const test = require("node:test");
+//const assert = require("node:assert/strict");
+//const { calculateTotal } = require("../src/app");
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { calculateTotal } = require("../src/app");
+const { app, calculateTotal } = require("../src/app");
 
 test("calculates the total for several items", () => {
   const items = [
@@ -23,3 +26,26 @@ test("does not mutate the input items", () => {
 
   assert.deepEqual(items, copy);
 });
+//test ajoutés
+test("GET /tasks returns the task list", async () => {
+  const server = app.listen(0);
+
+  try {
+    const address = server.address();
+    const response = await fetch(`http://localhost:${address.port}/tasks`);
+
+    assert.equal(response.status, 200);
+
+    const tasks = await response.json();
+
+    assert.ok(Array.isArray(tasks));
+    assert.equal(tasks.length, 2);
+    assert.equal(tasks[0].id, 1);
+    assert.equal(tasks[0].title, "Configurer le projet");
+    assert.equal(tasks[1].id, 2);
+    assert.equal(tasks[1].title, "Ajouter GET /tasks");
+  } finally {
+    server.close();
+  }
+});
+

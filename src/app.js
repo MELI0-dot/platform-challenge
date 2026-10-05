@@ -2,6 +2,11 @@ const express = require("express");
 
 const app = express();
 const port = process.env.PORT || 3000;
+//code ajouter
+const tasks = [
+  { id: 1, title: "Configurer le projet" },
+  { id: 2, title: "Ajouter GET /tasks" }
+];
 
 function calculateTotal(items) {
   // INTENTIONAL DEFECT: students must diagnose this using the tests.
@@ -17,6 +22,10 @@ app.get("/", (_req, res) => {
 
 app.get("/health", (_req, res) => {
   res.json({ status: "healthy" });
+});
+//code ajouter
+app.get("/tasks", (_req, res) => {
+  res.json(tasks);
 });
 
 app.get("/total", (_req, res) => {
