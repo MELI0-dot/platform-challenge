@@ -3,9 +3,18 @@ const express = require("express");
 const app = express();
 const port = process.env.PORT || 3000;
 
+app.use(express.json());
+
+const tasks = [
+  { id: 1, title: "First task", completed: false },
+  { id: 2, title: "Second task", completed: false }
+];
+
 function calculateTotal(items) {
-  // INTENTIONAL DEFECT: students must diagnose this using the tests.
-  return items.reduce((total, item) => total + item.price + item.quantity, 0);
+  return items.reduce(
+    (total, item) => total + item.price * item.quantity,
+    0
+  );
 }
 
 app.get("/", (_req, res) => {
@@ -28,10 +37,35 @@ app.get("/total", (_req, res) => {
   res.json({ total: calculateTotal(items) });
 });
 
+/*
+ * PATCH /tasks/:id
+ * Mark an existing task as completed or not completed.
+ */
+app.patch("/tasks/:id", (req, res) => {
+  const id = Number(req.params.id);
+  const task = tasks.find((task) => task.id === id);
+
+  if (!task) {
+    return res.status(404).json({
+      error: "Task not found"
+    });
+  }
+
+  if (typeof req.body.completed !== "boolean") {
+    return res.status(400).json({
+      error: "Invalid completed value"
+    });
+  }
+
+  task.completed = req.body.completed;
+
+  return res.status(200).json(task);
+});
+
 if (require.main === module) {
   app.listen(port, () => {
     console.log(`Application listening on port ${port}`);
   });
 }
 
-module.exports = { app, calculateTotal };
+module.exports = { app, calculateTotal, tasks };
