@@ -2,26 +2,30 @@
 
 ## Project purpose
 
-This project is a small Node.js application developed as part of a DevOps and platform engineering challenge.
+This project is a Node.js application developed as part of a DevOps and platform engineering challenge.
 
-The goal is to practice a complete development workflow including:
+The goal is to implement and demonstrate a complete collaborative development workflow including:
 
-* Git and GitHub
-* Feature branches
-* Pull Requests and code reviews
-* Automated testing
-* Code quality checks
-* Docker
-* GitHub Actions
-* Terraform validation
-* Project documentation
-
-The project is intentionally designed to include development and DevOps tasks that must be completed by the team.
+- Git and GitHub
+- Feature branches
+- Issues and Pull Requests
+- Code reviews
+- Automated testing
+- GitHub Actions
+- Docker
+- GitHub Container Registry (GHCR)
+- Terraform validation
+- Project documentation
 
 ## Architecture
 
 ```text
 platform-challenge/
+├── .github/
+│   └── workflows/
+│       ├── node-ci.yml
+│       ├── docker.yml
+│       └── terraform.yml
 ├── src/
 │   └── app.js
 ├── test/
@@ -29,8 +33,9 @@ platform-challenge/
 ├── terraform/
 │   ├── main.tf
 │   └── README.md
-├── .github/
-│   └── workflows/
+├── .dockerignore
+├── .gitignore
+├── Dockerfile
 ├── package.json
 ├── package-lock.json
 └── README.md
@@ -38,31 +43,36 @@ platform-challenge/
 
 The application is built with Node.js and Express.
 
-Terraform is used for local infrastructure configuration validation. No cloud provider is required.
+Terraform is used for infrastructure configuration validation. No cloud provider is required.
 
 ## Prerequisites
 
 The following tools are required:
 
-* Node.js
-* npm
-* Git
-* Docker
-* Terraform
+- Node.js
+- npm
+- Git
+- Docker
+- Terraform
 
 ## Local setup
 
-Clone the repository and install the project dependencies:
+Clone the repository:
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/MELI0-dot/platform-challenge.git
 cd platform-challenge
+```
+
+Install dependencies:
+
+```bash
 npm install
 ```
 
 ## Running the application
 
-Start the application with:
+Start the application:
 
 ```bash
 npm start
@@ -70,10 +80,10 @@ npm start
 
 The application listens on port `3000`.
 
-Open:
+The health endpoint is available at:
 
 ```text
-http://localhost:3000
+http://localhost:3000/health
 ```
 
 ## Testing
@@ -84,49 +94,188 @@ Run the automated tests:
 npm test
 ```
 
-Run the linter:
-
-```bash
-npm run lint
-```
-
-The project uses Node.js built-in test tools and ESLint.
+The test suite validates the application logic and the task API endpoints.
 
 ## API
 
 ### GET /
 
-Returns the application status.
+Returns information about the application.
 
 ### GET /health
 
 Returns the health status of the application.
 
+Example:
+
+```json
+{
+  "status": "healthy"
+}
+```
+
 ### GET /tasks
 
-Returns the list of tasks as a JSON array.
+Returns all tasks.
 
-Example response:
+Example:
 
 ```json
 [
   {
     "id": 1,
-    "title": "Configurer le projet",
+    "title": "First task",
     "completed": false
   },
   {
     "id": 2,
-    "title": "Ajouter GET /tasks",
+    "title": "Second task",
     "completed": false
   }
 ]
 ```
 
-The endpoint returns HTTP `200` when successful.
+Successful response: `200 OK`.
+
+### POST /tasks
+
+Creates a new task.
+
+Example request:
+
+```json
+{
+  "title": "New task"
+}
+```
+
+Example response:
+
+```json
+{
+  "id": 3,
+  "title": "New task",
+  "completed": false
+}
+```
+
+Successful response: `201 Created`.
+
+An empty or invalid title returns `400 Bad Request`.
+
+### PATCH /tasks/:id
+
+Updates the completion status of an existing task.
+
+Example request:
+
+```json
+{
+  "completed": true
+}
+```
+
+Successful response: `200 OK`.
+
+An unknown task returns `404 Not Found`.
+
+Invalid input returns `400 Bad Request`.
+
+### DELETE /tasks/:id
+
+Deletes an existing task.
+
+Successful response: `204 No Content`.
+
+An unknown task returns `404 Not Found`.
+
+## Continuous Integration
+
+The Node.js workflow is located at:
+
+```text
+.github/workflows/node-ci.yml
+```
+
+It automatically:
+
+1. Checks out the repository.
+2. Sets up Node.js.
+3. Installs dependencies with `npm ci`.
+4. Runs the automated tests with `npm test`.
+
+The workflow runs on pull requests and pushes to `main`.
 
 ## Docker
 
-The project uses Docker to containerize the Node.js application.
+Build the Docker image locally:
 
-The Docker workflow is
+```bash
+docker build -t platform-challenge .
+```
+
+Run the container:
+
+```bash
+docker run -p 3000:3000 platform-challenge
+```
+
+The application is then available on port `3000`.
+
+The Docker GitHub Actions workflow is located at:
+
+```text
+.github/workflows/docker.yml
+```
+
+It builds the Docker image and publishes images from `main` to GitHub Container Registry (GHCR).
+
+## Terraform
+
+Terraform configuration is stored in:
+
+```text
+terraform/
+```
+
+The Terraform CI workflow automatically executes:
+
+```bash
+terraform fmt -check -diff -recursive
+terraform init -backend=false
+terraform validate
+```
+
+The workflow runs when Terraform configuration or its workflow is modified.
+
+No cloud provider is required for this challenge.
+
+## Git workflow
+
+Development is performed using feature branches.
+
+The expected workflow is:
+
+```text
+Issue
+  ↓
+Feature branch
+  ↓
+Development and tests
+  ↓
+Pull Request
+  ↓
+CI checks
+  ↓
+Code review and approval
+  ↓
+Merge into main
+```
+
+Direct development on `main` is avoided.
+
+Pull requests must pass the required checks and receive the required approval before being merged.
+
+## Team
+
+This project was completed collaboratively as part of the DevOps Platform Challenge.
