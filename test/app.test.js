@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { calculateTotal } = require("../src/app");
+const { app, calculateTotal, tasks } = require("../src/app");
 
 test("calculates the total for several items", () => {
   const items = [
@@ -22,4 +22,71 @@ test("does not mutate the input items", () => {
   calculateTotal(items);
 
   assert.deepEqual(items, copy);
+});
+
+test("PATCH /tasks/:id updates an existing task", async () => {
+  tasks[0].completed = false;
+
+  const server = app.listen(0);
+
+  try {
+    const { port } = server.address();
+
+    const response = await fetch(`http://localhost:${port}/tasks/1`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ completed: true })
+    });
+
+    assert.equal(response.status, 200);
+
+    const body = await response.json();
+
+    assert.equal(body.id, 1);
+    assert.equal(body.completed, true);
+  } finally {
+    server.close();
+  }
+});
+
+test("PATCH /tasks/:id returns 404 for an unknown task", async () => {
+  const server = app.listen(0);
+
+  try {
+    const { port } = server.address();
+
+    const response = await fetch(`http://localhost:${port}/tasks/999`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ completed: true })
+    });
+
+    assert.equal(response.status, 404);
+  } finally {
+    server.close();
+  }
+});
+
+test("PATCH /tasks/:id returns 400 for invalid input", async () => {
+  const server = app.listen(0);
+
+  try {
+    const { port } = server.address();
+
+    const response = await fetch(`http://localhost:${port}/tasks/1`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ completed: "yes" })
+    });
+
+    assert.equal(response.status, 400);
+  } finally {
+    server.close();
+  }
 });
