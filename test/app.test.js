@@ -264,6 +264,3 @@ test("DELETE /tasks/:id returns 404 for an unknown task", async () => {
     resetTasks();
   }
 });
-test("quality gate demonstration - intentional failure", () => {
-  assert.equal(1, 2);
-});
