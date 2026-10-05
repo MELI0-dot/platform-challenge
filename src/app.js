@@ -5,10 +5,23 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json());
 
-const tasks = [
+const initialTasks = [
   { id: 1, title: "First task", completed: false },
   { id: 2, title: "Second task", completed: false }
 ];
+
+const tasks = [];
+
+/*
+ * Restore the task list to its initial state.
+ * Used by the tests so that every test starts from a known state.
+ */
+function resetTasks() {
+  tasks.length = 0;
+  initialTasks.forEach((task) => tasks.push({ ...task }));
+}
+
+resetTasks();
 
 function calculateTotal(items) {
   return items.reduce(
@@ -62,10 +75,29 @@ app.patch("/tasks/:id", (req, res) => {
   return res.status(200).json(task);
 });
 
+/*
+ * DELETE /tasks/:id
+ * Delete an existing task.
+ */
+app.delete("/tasks/:id", (req, res) => {
+  const id = Number(req.params.id);
+  const index = tasks.findIndex((task) => task.id === id);
+
+  if (index === -1) {
+    return res.status(404).json({
+      error: "Task not found"
+    });
+  }
+
+  tasks.splice(index, 1);
+
+  return res.status(204).send();
+});
+
 if (require.main === module) {
   app.listen(port, () => {
     console.log(`Application listening on port ${port}`);
   });
 }
 
-module.exports = { app, calculateTotal, tasks };
+module.exports = { app, calculateTotal, tasks, resetTasks };
