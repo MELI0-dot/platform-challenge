@@ -3,7 +3,7 @@ terraform {
 }
 
 variable "application_name" {
-  type    = string
+  type = string
   default = "devops-platform-challenge"
 }
 
