@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { app, calculateTotal, tasks } = require("../src/app");
+const { app, calculateTotal, tasks, resetTasks } = require("../src/app");
 
 test("calculates the total for several items", () => {
   const items = [
@@ -86,6 +86,45 @@ test("PATCH /tasks/:id returns 400 for invalid input", async () => {
     });
 
     assert.equal(response.status, 400);
+  } finally {
+    server.close();
+  }
+});
+
+test("DELETE /tasks/:id deletes an existing task", async () => {
+  resetTasks();
+
+  const server = app.listen(0);
+
+  try {
+    const { port } = server.address();
+
+    const response = await fetch(`http://localhost:${port}/tasks/1`, {
+      method: "DELETE"
+    });
+
+    assert.equal(response.status, 204);
+    assert.equal(tasks.some((task) => task.id === 1), false);
+  } finally {
+    server.close();
+    resetTasks();
+  }
+});
+
+test("DELETE /tasks/:id returns 404 for an unknown task", async () => {
+  resetTasks();
+
+  const server = app.listen(0);
+
+  try {
+    const { port } = server.address();
+
+    const response = await fetch(`http://localhost:${port}/tasks/999`, {
+      method: "DELETE"
+    });
+
+    assert.equal(response.status, 404);
+    assert.equal(tasks.length, 2);
   } finally {
     server.close();
   }
